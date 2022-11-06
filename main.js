@@ -1,8 +1,14 @@
 // Select the html elements
-const sprint3SelectorsContainer = document.querySelector('.sprint-3__selectors');
-const sprint3Submit = document.querySelector('.sprint-3__submit');
-const sprint3Result = document.querySelector('.sprint-3__result h2');
+const sprint2SelectorsContainer = document.querySelector('.sprint-2__selectors');
+const sprint2Submit = document.querySelector('.sprint-2__submit');
+const sprint2Result = document.querySelector('.sprint-2__result h2');
+const sprint3SelectorContainer = document.querySelector('.sprint-3__handlers');
+const sprint3Submit = document.querySelector('.sprint-3 button');
+const sprint3Input = document.querySelector('.sprint-3 input');
+const sprint3List = document.querySelector('.sprint-3 ol');
 
+// Global data variables
+let dataNodes = []
 
 // Function which generate a select menu
 const createSelectMenu = ({className, name, id, optionsArray}) => {
@@ -16,48 +22,61 @@ const createSelectMenu = ({className, name, id, optionsArray}) => {
   return selectMenu
 }
 
-const sprint2Init = async () => {
-  let value1 = '';
-  let value2 = '';
-
+// Get all the nodes from the API's Dummy database -> CSV
+const initData = async () => {
   const raw = await fetch("http://127.0.0.1:5000/nodes");
-  const data = await raw.json();
-  
+  dataNodes = await raw.json();
+}
+
+const sprint2Init = async () => {
   const select1 = createSelectMenu({
     className: "nodes-selector",
     name: "select-1",
     id: "select-1",
-    optionsArray: await data
+    optionsArray: dataNodes
   });
   const select2 = createSelectMenu({
     className: "nodes-selector",
     name: "select-2",
     id: "select-2",
-    optionsArray: await data
+    optionsArray: dataNodes
   })
-  sprint3SelectorsContainer.appendChild(select1);
-  sprint3SelectorsContainer.appendChild(select2);
-  sprint3Submit.addEventListener('click', async() => {
+  sprint2SelectorsContainer.appendChild(select1);
+  sprint2SelectorsContainer.appendChild(select2);
+  sprint2Submit.addEventListener('click', async() => {
     const cleanValue1 = select1.value.replaceAll('_', ' ');
     const cleanValue2 = select2.value.replaceAll('_', ' ');
     const raw = await fetch(`http://127.0.0.1:5000/sprint-2?nodeA=${cleanValue1}&nodeB=${cleanValue2}`);
     const data = await raw.json();
-    sprint3Result.innerText = `${data.similarity.toFixed(2)}%`
+    sprint2Result.innerText = `${data.similarity.toFixed(2)}%`
+  })
+  
+}
+
+const sprint3Init = async () => {
+  const select = createSelectMenu({
+    className: "nodes-selector",
+    name: "select-1",
+    id: "select-1",
+    optionsArray: dataNodes
+  });
+  sprint3SelectorContainer.appendChild(select);
+  sprint3Submit.addEventListener('click', async () => {
+    sprint3List.innerHTML = '';
+    const cleanValue = select.value.replaceAll('_', ' ');
+    const raw = await fetch(`http://127.0.0.1:5000/sprint-3?node=${cleanValue}&size=${sprint3Input.value}`);
+    const data = await raw.json();
+    console.log(data)
+    data.forEach(d => {
+      sprint3List.innerHTML += `<li>${d.name} ---> <b>${d.similarity.toFixed(3)}</b></li>`
+    })
   })
   
 }
 
 
-sprint2Init();
-  
-// fetch("http://127.0.0.1:5000/home")
-//   .then(raw => {
-//     return raw.json()
-//   })
-//   .then(data => {
-//     console.log(data)
-//     data.forEach(d => {
-//       neighborsListElem.innerHTML += `<li>${d.name} ---> ${d.similarity}</li>`
-//     })
-//   })
-  
+initData()
+  .then(_ => {
+    sprint2Init();
+    sprint3Init();
+  })
